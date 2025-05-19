@@ -1,15 +1,16 @@
 <?php
-// --- Conexión a SQL Server ---
-$serverName = "dbserver5"; // O IP o nombre de tu instancia SQL Server
-$connectionOptions = [
+// --- Conexión a SQL Server en Azure ---
+$serverName = "tcp:dbserver5.database.windows.net,1433";
+$connectionInfo = array(
+    "UID" => "jucavarh",
+    "PWD" => "A38391-bmu8tv",
     "Database" => "formulario_app",
-    "Uid" => "jucavarh",      // Cambia esto
-    "PWD" => "A38391-bmu8tv",  // Cambia esto
-    "CharacterSet" => "UTF-8"
-];
+    "LoginTimeout" => 30,
+    "Encrypt" => 1,
+    "TrustServerCertificate" => 0
+);
 
-// Crear conexión
-$conn = sqlsrv_connect($serverName, $connectionOptions);
+$conn = sqlsrv_connect($serverName, $connectionInfo);
 
 // Verificar conexión
 if ($conn === false) {
