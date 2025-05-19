@@ -1,6 +1,6 @@
 <?php
 // --- Conexión a SQL Server ---
-$serverName = "localhost"; // O IP o nombre de tu instancia SQL Server
+$serverName = "dbserver5"; // O IP o nombre de tu instancia SQL Server
 $connectionOptions = [
     "Database" => "formulario_app",
     "Uid" => "jucavarh",      // Cambia esto
