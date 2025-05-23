@@ -1,6 +1,6 @@
 <?php
 // --- Conexión a SQL Server en Azure ---
-$serverName = "tcp:jucaserver.database.windows.net,1433";
+$serverName = "tcp:20.10.0.4,1433";
 $connectionInfo = array(
     "UID" => "jucavarh",
     "PWD" => "A38391-bmu8tv",
