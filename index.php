@@ -9,7 +9,7 @@ $connectionInfo = array(
     "Encrypt" => 1,
     "TrustServerCertificate" => 0
 );
-// Hola buenos dias
+// Hola buenos dias '''
 $conn = sqlsrv_connect($serverName, $connectionInfo);
 
 // Verificar conexión
