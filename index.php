@@ -19,19 +19,27 @@ if ($conn === false) {
 
 // --- Insertar datos si se envió el formulario ---
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $nombre = $_POST['nombre'];
-    $correo = $_POST['correo'];
+    // Procesamiento del formulario principal
+    if (isset($_POST['nombre']) && isset($_POST['correo'])) {
+        $nombre = $_POST['nombre'];
+        $correo = $_POST['correo'];
 
-    if (!empty($nombre) && !empty($correo)) {
-        $sql = "INSERT INTO usuarios (nombre, correo) VALUES (?, ?)";
-        $params = array($nombre, $correo);
-        $stmt = sqlsrv_query($conn, $sql, $params);
+        if (!empty($nombre) && !empty($correo)) {
+            $sql = "INSERT INTO usuarios (nombre, correo) VALUES (?, ?)";
+            $params = array($nombre, $correo);
+            $stmt = sqlsrv_query($conn, $sql, $params);
 
-        if ($stmt === false) {
-            die(print_r(sqlsrv_errors(), true));
-        } else {
-            $mensaje_exito = "¡Registro guardado exitosamente!";
+            if ($stmt === false) {
+                die(print_r(sqlsrv_errors(), true));
+            } else {
+                $mensaje_exito = "¡Registro guardado exitosamente!";
+            }
         }
+    }
+    
+    // Procesamiento del test WAF
+    if (isset($_POST['waf_test'])) {
+        $waf_test_result = $_POST['waf_test'];
     }
 }
 ?>
@@ -44,193 +52,63 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <title>Formulario PHP - Captura y Consulta</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --primary-color: #4361ee;
-            --secondary-color: #3a0ca3;
-            --accent-color: #f72585;
-            --light-color: #f8f9fa;
-            --dark-color: #212529;
-            --success-color: #4cc9f0;
-            --error-color: #ef233c;
-            --bg-gradient: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
-            --border-radius: 12px;
-            --box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-            --transition: all 0.3s ease;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Montserrat', sans-serif;
-        }
-
-        body {
-            background: var(--bg-gradient);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 40px 20px;
-            color: var(--dark-color);
-        }
-
-        .container {
-            width: 100%;
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-
-        .card {
-            background-color: rgba(255, 255, 255, 0.95);
+        /* Tus estilos existentes... */
+        
+        /* Nuevos estilos para la sección WAF */
+        .waf-test-section {
+            margin: 30px auto;
+            padding: 20px;
+            background: #f0f0f0;
+            border: 2px solid red;
+            max-width: 500px;
             border-radius: var(--border-radius);
-            box-shadow: var(--box-shadow);
-            padding: 30px;
-            margin-bottom: 30px;
-            transition: var(--transition);
         }
-
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
-        }
-
-        h1, h2 {
-            color: var(--primary-color);
-            margin-bottom: 25px;
+        
+        .waf-test-section h3 {
+            color: red;
+            margin-bottom: 15px;
             text-align: center;
-            position: relative;
-            padding-bottom: 15px;
         }
-
-        h1::after, h2::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 80px;
-            height: 4px;
-            background: var(--accent-color);
-            border-radius: 2px;
-        }
-
-        .form-group {
-            margin-bottom: 25px;
-        }
-
-        label {
-            display: block;
+        
+        .waf-test-input {
+            width: 95%;
+            padding: 8px;
             margin-bottom: 8px;
-            font-weight: 500;
-            color: var(--dark-color);
+            border-radius: 4px;
+            border: 1px solid #ccc;
         }
-
-        input[type="text"],
-        input[type="email"] {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid #e9ecef;
-            border-radius: var(--border-radius);
-            font-size: 16px;
-            transition: var(--transition);
-        }
-
-        input[type="text"]:focus,
-        input[type="email"]:focus {
-            border-color: var(--primary-color);
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
-        }
-
-        .btn {
-            background-color: var(--primary-color);
+        
+        .waf-test-btn {
+            background-color: #d9534f;
             color: white;
             border: none;
-            padding: 15px 30px;
-            font-size: 16px;
-            font-weight: 600;
-            border-radius: var(--border-radius);
+            padding: 8px 16px;
+            border-radius: 4px;
             cursor: pointer;
-            transition: var(--transition);
-            display: inline-block;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            width: 100%;
         }
-
-        .btn:hover {
-            background-color: var(--secondary-color);
-            transform: translateY(-3px);
-            box-shadow: 0 7px 14px rgba(0, 0, 0, 0.1);
+        
+        .waf-test-btn:hover {
+            background-color: #c9302c;
         }
-
-        .alert {
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: var(--border-radius);
-            background-color: rgba(76, 201, 240, 0.2);
-            border-left: 5px solid var(--success-color);
-            color: var(--dark-color);
-            display: <?php echo isset($mensaje_exito) ? 'block' : 'none'; ?>;
-            animation: fadeIn 0.5s ease;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            background-color: white;
-            border-radius: var(--border-radius);
-            overflow: hidden;
-            box-shadow: var(--box-shadow);
-        }
-
-        th, td {
-            padding: 15px;
-            text-align: left;
-            border-bottom: 1px solid #e9ecef;
-        }
-
-        th {
-            background-color: var(--primary-color);
-            color: white;
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 14px;
-            position: sticky;
-            top: 0;
-        }
-
-        tr:nth-child(even) {
-            background-color: #f8f9fa;
-        }
-
-        tr:hover {
-            background-color: rgba(67, 97, 238, 0.05);
-        }
-
-        .no-data {
+        
+        .waf-status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
             text-align: center;
-            padding: 20px;
-            color: #6c757d;
+            font-weight: bold;
         }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
+        
+        .waf-off {
+            background-color: #f2dede;
+            color: #a94442;
+            border: 1px solid #ebccd1;
         }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .card {
-                padding: 20px;
-            }
-            
-            th, td {
-                padding: 10px;
-                font-size: 14px;
-            }
+        
+        .waf-on {
+            background-color: #dff0d8;
+            color: #3c763d;
+            border: 1px solid #d6e9c6;
         }
     </style>
 </head>
@@ -256,6 +134,39 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 
                 <button type="submit" class="btn">Guardar Registro</button>
             </form>
+            
+            <!-- Sección de prueba WAF -->
+            <div class="waf-test-section">
+                <h3>Prueba de WAF</h3>
+                
+                <?php if (isset($waf_test_result)): ?>
+                    <div class="waf-status <?php echo (strpos($waf_test_result, 'APAGADO') !== false) ? 'waf-off' : 'waf-on'; ?>">
+                        <?php echo htmlspecialchars($waf_test_result); ?>
+                    </div>
+                <?php endif; ?>
+                
+                <form method="post">
+                    <input
+                        type="text"
+                        name="waf_test"
+                        class="waf-test-input"
+                        placeholder='Prueba WAF: <script>alert("TEST")</script>'
+                    >
+                    <button type="submit" class="waf-test-btn">Probar WAF</button>
+                </form>
+                
+                <div style="margin-top: 20px; text-align: center;">
+                    <p>Para probar el WAF:</p>
+                    <ol style="text-align: left; padding-left: 20px;">
+                        <li>Con WAF <strong>APAGADO</strong>, ingresa: 
+                            <code>&lt;script&gt;alert("EL WAF ESTA APAGADO")&lt;/script&gt;</code>
+                        </li>
+                        <li>Con WAF <strong>PRENDIDO</strong>, ingresa: 
+                            <code>&lt;script&gt;alert("EL WAF ESTA PRENDIDO")&lt;/script&gt;</code>
+                        </li>
+                    </ol>
+                </div>
+            </div>
         </div>
         
         <div class="card">
@@ -298,5 +209,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </table>
         </div>
     </div>
+    
+    <!-- Mostrar alerta si se envió un script (solo cuando WAF está desactivado) -->
+    <?php if (isset($waf_test_result) && strpos($waf_test_result, '<script>') !== false): ?>
+        <script>
+            try {
+                <?php echo $waf_test_result; ?>
+            } catch(e) {
+                console.log("WAF está bloqueando la ejecución del script");
+            }
+        </script>
+    <?php endif; ?>
 </body>
 </html>
