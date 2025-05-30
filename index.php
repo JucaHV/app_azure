@@ -1,5 +1,52 @@
 <?php
-// --- Conexión a SQL Server en Azure ---
+// --- Verificación del estado del WAF ---
+$waf_activo = true; // Cambiar a false para simular WAF apagado
+
+// Si el WAF está apagado, mostrar mensaje y detener ejecución
+if (!$waf_activo) {
+    die('<!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>WAF Desactivado</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background-color: #f8f9fa;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+                margin: 0;
+            }
+            .alert-box {
+                background-color: #fff3cd;
+                border: 1px solid #ffeeba;
+                color: #856404;
+                padding: 20px;
+                border-radius: 5px;
+                max-width: 500px;
+                text-align: center;
+                box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            }
+            h1 {
+                color: #dc3545;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="alert-box">
+            <h1>ADVERTENCIA DE SEGURIDAD</h1>
+            <p>El Web Application Firewall (WAF) está actualmente DESACTIVADO.</p>
+            <p><strong>EL WAF ESTA APAGADO</strong></p>
+            <p>Por razones de seguridad, el acceso a la aplicación no está disponible mientras el WAF esté desactivado.</p>
+        </div>
+    </body>
+    </html>');
+}
+
+// --- Conexión a SQL Server en Azure (solo se ejecuta si WAF está activo) ---
 $serverName = "tcp:jucaserver.database.windows.net,1433";
 $connectionInfo = array(
     "UID" => "jucavarh",
@@ -17,29 +64,26 @@ if ($conn === false) {
     die(print_r(sqlsrv_errors(), true));
 }
 
+// Mostrar mensaje que WAF está activo
+$mensaje_waf = '<div class="waf-status" style="background-color: #d4edda; color: #155724; padding: 10px; border-radius: 4px; margin-bottom: 20px; text-align: center;">
+                 <strong>EL WAF ESTA PRENDIDO</strong> - Aplicación protegida
+               </div>';
+
 // --- Insertar datos si se envió el formulario ---
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Procesamiento del formulario principal
-    if (isset($_POST['nombre']) && isset($_POST['correo'])) {
-        $nombre = $_POST['nombre'];
-        $correo = $_POST['correo'];
+    $nombre = $_POST['nombre'];
+    $correo = $_POST['correo'];
 
-        if (!empty($nombre) && !empty($correo)) {
-            $sql = "INSERT INTO usuarios (nombre, correo) VALUES (?, ?)";
-            $params = array($nombre, $correo);
-            $stmt = sqlsrv_query($conn, $sql, $params);
+    if (!empty($nombre) && !empty($correo)) {
+        $sql = "INSERT INTO usuarios (nombre, correo) VALUES (?, ?)";
+        $params = array($nombre, $correo);
+        $stmt = sqlsrv_query($conn, $sql, $params);
 
-            if ($stmt === false) {
-                die(print_r(sqlsrv_errors(), true));
-            } else {
-                $mensaje_exito = "¡Registro guardado exitosamente!";
-            }
+        if ($stmt === false) {
+            die(print_r(sqlsrv_errors(), true));
+        } else {
+            $mensaje_exito = "¡Registro guardado exitosamente!";
         }
-    }
-    
-    // Procesamiento del test WAF
-    if (isset($_POST['waf_test'])) {
-        $waf_test_result = $_POST['waf_test'];
     }
 }
 ?>
@@ -54,66 +98,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <style>
         /* Tus estilos existentes... */
         
-        /* Nuevos estilos para la sección WAF */
-        .waf-test-section {
-            margin: 30px auto;
-            padding: 20px;
-            background: #f0f0f0;
-            border: 2px solid red;
-            max-width: 500px;
-            border-radius: var(--border-radius);
-        }
-        
-        .waf-test-section h3 {
-            color: red;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-        
-        .waf-test-input {
-            width: 95%;
-            padding: 8px;
-            margin-bottom: 8px;
-            border-radius: 4px;
-            border: 1px solid #ccc;
-        }
-        
-        .waf-test-btn {
-            background-color: #d9534f;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        
-        .waf-test-btn:hover {
-            background-color: #c9302c;
-        }
-        
         .waf-status {
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 4px;
+            background-color: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            margin-bottom: 25px;
             text-align: center;
-            font-weight: bold;
-        }
-        
-        .waf-off {
-            background-color: #f2dede;
-            color: #a94442;
-            border: 1px solid #ebccd1;
-        }
-        
-        .waf-on {
-            background-color: #dff0d8;
-            color: #3c763d;
-            border: 1px solid #d6e9c6;
+            border-left: 5px solid #28a745;
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <?php echo $mensaje_waf; ?>
+        
         <div class="card">
             <h1>Formulario de Captura</h1>
             
@@ -134,39 +133,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 
                 <button type="submit" class="btn">Guardar Registro</button>
             </form>
-            
-            <!-- Sección de prueba WAF -->
-            <div class="waf-test-section">
-                <h3>Prueba de WAF</h3>
-                
-                <?php if (isset($waf_test_result)): ?>
-                    <div class="waf-status <?php echo (strpos($waf_test_result, 'APAGADO') !== false) ? 'waf-off' : 'waf-on'; ?>">
-                        <?php echo htmlspecialchars($waf_test_result); ?>
-                    </div>
-                <?php endif; ?>
-                
-                <form method="post">
-                    <input
-                        type="text"
-                        name="waf_test"
-                        class="waf-test-input"
-                        placeholder='Prueba WAF: <script>alert("TEST")</script>'
-                    >
-                    <button type="submit" class="waf-test-btn">Probar WAF</button>
-                </form>
-                
-                <div style="margin-top: 20px; text-align: center;">
-                    <p>Para probar el WAF:</p>
-                    <ol style="text-align: left; padding-left: 20px;">
-                        <li>Con WAF <strong>APAGADO</strong>, ingresa: 
-                            <code>&lt;script&gt;alert("EL WAF ESTA APAGADO")&lt;/script&gt;</code>
-                        </li>
-                        <li>Con WAF <strong>PRENDIDO</strong>, ingresa: 
-                            <code>&lt;script&gt;alert("EL WAF ESTA PRENDIDO")&lt;/script&gt;</code>
-                        </li>
-                    </ol>
-                </div>
-            </div>
         </div>
         
         <div class="card">
@@ -209,16 +175,5 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </table>
         </div>
     </div>
-    
-    <!-- Mostrar alerta si se envió un script (solo cuando WAF está desactivado) -->
-    <?php if (isset($waf_test_result) && strpos($waf_test_result, '<script>') !== false): ?>
-        <script>
-            try {
-                <?php echo $waf_test_result; ?>
-            } catch(e) {
-                console.log("WAF está bloqueando la ejecución del script");
-            }
-        </script>
-    <?php endif; ?>
 </body>
 </html>
