@@ -1,52 +1,5 @@
 <?php
-// --- Verificación del estado del WAF ---
-$waf_activo = true; // Cambiar a false para simular WAF apagado
-
-// Si el WAF está apagado, mostrar mensaje y detener ejecución
-if (!$waf_activo) {
-    die('<!DOCTYPE html>
-    <html lang="es">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>WAF Desactivado</title>
-        <style>
-            body {
-                font-family: Arial, sans-serif;
-                background-color: #f8f9fa;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                height: 100vh;
-                margin: 0;
-            }
-            .alert-box {
-                background-color: #fff3cd;
-                border: 1px solid #ffeeba;
-                color: #856404;
-                padding: 20px;
-                border-radius: 5px;
-                max-width: 500px;
-                text-align: center;
-                box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            }
-            h1 {
-                color: #dc3545;
-            }
-        </style>
-    </head>
-    <body>
-        <div class="alert-box">
-            <h1>ADVERTENCIA DE SEGURIDAD</h1>
-            <p>El Web Application Firewall (WAF) está actualmente DESACTIVADO.</p>
-            <p><strong>EL WAF ESTA APAGADO</strong></p>
-            <p>Por razones de seguridad, el acceso a la aplicación no está disponible mientras el WAF esté desactivado.</p>
-        </div>
-    </body>
-    </html>');
-}
-
-// --- Conexión a SQL Server en Azure (solo se ejecuta si WAF está activo) ---
+// --- Conexión a SQL Server en Azure ---
 $serverName = "tcp:jucaserver.database.windows.net,1433";
 $connectionInfo = array(
     "UID" => "jucavarh",
@@ -63,11 +16,6 @@ $conn = sqlsrv_connect($serverName, $connectionInfo);
 if ($conn === false) {
     die(print_r(sqlsrv_errors(), true));
 }
-
-// Mostrar mensaje que WAF está activo
-$mensaje_waf = '<div class="waf-status" style="background-color: #d4edda; color: #155724; padding: 10px; border-radius: 4px; margin-bottom: 20px; text-align: center;">
-                 <strong>EL WAF ESTA PRENDIDO</strong> - Aplicación protegida
-               </div>';
 
 // --- Insertar datos si se envió el formulario ---
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -96,23 +44,198 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <title>Formulario PHP - Captura y Consulta</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Tus estilos existentes... */
-        
-        .waf-status {
-            background-color: #d4edda;
-            color: #155724;
-            padding: 15px;
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3a0ca3;
+            --accent-color: #f72585;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --success-color: #4cc9f0;
+            --error-color: #ef233c;
+            --bg-gradient: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+            --border-radius: 12px;
+            --box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            color: var(--dark-color);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background-color: rgba(255, 255, 255, 0.95);
             border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 30px;
+            margin-bottom: 30px;
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        h1, h2 {
+            color: var(--primary-color);
             margin-bottom: 25px;
             text-align: center;
-            border-left: 5px solid #28a745;
+            position: relative;
+            padding-bottom: 15px;
+        }
+
+        h1::after, h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: var(--accent-color);
+            border-radius: 2px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark-color);
+        }
+
+        input[type="text"],
+        input[type="email"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            transition: var(--transition);
+        }
+
+        input[type="text"]:focus,
+        input[type="email"]:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-block;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-3px);
+            box-shadow: 0 7px 14px rgba(0, 0, 0, 0.1);
+        }
+
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: var(--border-radius);
+            background-color: rgba(76, 201, 240, 0.2);
+            border-left: 5px solid var(--success-color);
+            color: var(--dark-color);
+            display: <?php echo isset($mensaje_exito) ? 'block' : 'none'; ?>;
+            animation: fadeIn 0.5s ease;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background-color: white;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--box-shadow);
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        th {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 14px;
+            position: sticky;
+            top: 0;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        tr:hover {
+            background-color: rgba(67, 97, 238, 0.05);
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 20px;
+            color: #6c757d;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .card {
+                padding: 20px;
+            }
+            
+            th, td {
+                padding: 10px;
+                font-size: 14px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <?php echo $mensaje_waf; ?>
-        
         <div class="card">
             <h1>Formulario de Captura</h1>
             
