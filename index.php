@@ -19,14 +19,8 @@ if ($conn === false) {
 
 // --- Insertar datos si se envió el formulario ---
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Sanitizar entradas
-    $nombre = htmlspecialchars($_POST['nombre'], ENT_QUOTES, 'UTF-8');
-    $correo = filter_var($_POST['correo'], FILTER_SANITIZE_EMAIL);
-    
-    // Validar correo
-    if (!filter_var($correo, FILTER_VALIDATE_EMAIL)) {
-        die("El correo electrónico no es válido");
-    }
+    $nombre = $_POST['nombre'];
+    $correo = $_POST['correo'];
 
     if (!empty($nombre) && !empty($correo)) {
         $sql = "INSERT INTO usuarios (nombre, correo) VALUES (?, ?)";
@@ -246,7 +240,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <h1>Formulario de Captura</h1>
             
             <?php if (isset($mensaje_exito)): ?>
-                <div class="alert"><?php echo htmlspecialchars($mensaje_exito, ENT_QUOTES, 'UTF-8'); ?></div>
+                <div class="alert"><?php echo $mensaje_exito; ?></div>
             <?php endif; ?>
             
             <form method="POST" action="">
@@ -288,9 +282,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     while ($row = sqlsrv_fetch_array($result, SQLSRV_FETCH_ASSOC)) {
                         $hay_datos = true;
                         echo "<tr>
-                                <td>".htmlspecialchars($row['id'], ENT_QUOTES, 'UTF-8')."</td>
-                                <td>".htmlspecialchars($row['nombre'], ENT_QUOTES, 'UTF-8')."</td>
-                                <td>".htmlspecialchars($row['correo'], ENT_QUOTES, 'UTF-8')."</td>
+                                <td>{$row['id']}</td>
+                                <td>{$row['nombre']}</td>
+                                <td>{$row['correo']}</td>
                               </tr>";
                     }
                     
